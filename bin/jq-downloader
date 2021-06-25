@@ -15,15 +15,22 @@ get_jq_filename() {
 }
 
 download_jq_if_not_exists() {
-
-  jq_path="$(type -p jq || echo ${currentDir}/jq)"
-
-  if [[ -z "$(type -p ${jq_path})" ]]; then
-    echo "jq does not exist in PATH. Downloading it."
-    curl -sL "https://github.com/stedolan/jq/releases/latest/download/$(get_jq_filename)" -o "${jq_path}"
-    chmod +x "${jq_path}"
+  if [ "$HASJQ" = "1" ]; then
+    jq_path="$(type -p jq)"
+    export JQ_BIN="${jq_path}"
+    return
   fi
+
+  echo "jq does not exist in PATH. Downloading it."
+  curl -sL "https://github.com/stedolan/jq/releases/latest/download/$(get_jq_filename)" -o "${jq_path}"
+  chmod +x "${jq_path}"
 
   export JQ_BIN="${jq_path}"
   echo "jq is now in ${JQ_BIN}"
 }
+
+if hash jq 2>/dev/null; then
+  HASJQ=1
+else
+  HASJQ=0
+fi
